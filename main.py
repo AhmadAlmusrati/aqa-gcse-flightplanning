@@ -17,24 +17,12 @@ with open('Airports.csv', 'r') as csvfile:
     for row in csvdictreader:
         for (k,v) in row.items():
             columns[k].append(v)
+
 def clear():
     os.system('cls' if os.name == 'nt' else 'clear')
-def mainMenu():
-    print('''
-=========================================
-Welcome to the airline profit calculator
-=========================================
-(1) Enter airport details
-(2) Enter flight details
-(3) Enter price plan and calculate profit
-(4) Clear data
-(Q) Quit
-=========================================
-    ''')
-    menuSelection = input()
-    clear()
-    # Enter airport details
-    if(menuSelection == '1'):
+
+# Airport details
+def airportDetails():
         global ukAirport
         global abrAirport
         global columnIndex
@@ -52,66 +40,82 @@ Welcome to the airline profit calculator
                 clear()
                 print('Invalid airport code, returning to main menu')
                 mainMenu()
-    # Enter flight details
-    if(menuSelection == '2'):
+
+# FLight details
+def flightDetails():
         global selectedAircraftType
         global firstClassSeats
         global standardSeats
+        global bodyType
         
         clear()
-        selectedAircraftType = input('Enter aircraft type\n')
-        if(selectedAircraftType == 'Medium narrow body'):
-            print('Running cost per seat per 100 km: ' + medNarBody['Running cost per seat per 100 km'] + '\nMaximum flight range (km): ' + medNarBody['Maximum flight range (km)'] + '\nCapacity if all seats are standard-class: ' + medNarBody['Capacity if all seats are standard-class'] + '\nMinimum number of first-class seats: ' + medNarBody['Minimum number of first-class seats'])
-            firstClassSeats = int(input('Enter amount of first class seats\n'))
-            if(firstClassSeats > 0):
-                if(firstClassSeats < int(medNarBody['Minimum number of first-class seats'])):
-                    clear()
-                    print('First class seats less than minimum, returning to main menu.')
-                    mainMenu()
-                if(firstClassSeats > int(medNarBody['Capacity if all seats are standard-class'])):
-                    clear()
-                    print('First class seats greater then capacity, returning to main menu.')
-                    mainMenu()
-                standardSeats = int(medNarBody['Capacity if all seats are standard-class']) - firstClassSeats*2
-                clear()
-                print('Flight details verified, returning to main menu.')
-                mainMenu()
-        elif(selectedAircraftType == 'Large narrow body'):
-            print('Running cost per seat per 100 km: ' + larNarBody['Running cost per seat per 100 km'] + '\nMaximum flight range (km): ' + larNarBody['Maximum flight range (km)'] + '\nCapacity if all seats are standard-class: ' + larNarBody['Capacity if all seats are standard-class'] + '\nMinimum number of first-class seats: ' + larNarBody['Minimum number of first-class seats'])    
-            firstClassSeats = int(input('Enter amount of first class seats\n'))
-            if(firstClassSeats > 0):
-                if(firstClassSeats < int(larNarBody['Minimum number of first-class seats'])):
-                    clear()
-                    print('First class seats less than minimum, returning to main menu.')
-                    mainMenu()
-                elif(firstClassSeats > int(larNarBody['Capacity if all seats are standard-class'])):
-                    clear()
-                    print('First class seats greater then capacity, returning to main menu.')
-                    mainMenu()
-                standardSeats = int(larNarBody['Capacity if all seats are standard-class']) - firstClassSeats*2
-                clear()
-                print('Flight details verified, returning to main menu.')
-                mainMenu()
-        elif(selectedAircraftType == 'Medium wide body'):
-            print('Running cost per seat per 100 km: ' + medWidBody['Running cost per seat per 100 km'] + '\nMaximum flight range (km): ' + medWidBody['Maximum flight range (km)'] + '\nCapacity if all seats are standard-class: ' + medWidBody['Capacity if all seats are standard-class'] + '\nMinimum number of first-class seats: ' + medWidBody['Minimum number of first-class seats'])
-            firstClassSeats = int(input('Enter amount of first class seats\n'))
-            if(firstClassSeats > 0):
-                if(firstClassSeats < int(medWidBody['Minimum number of first-class seats'])):
-                    clear()
-                    print('First class seats less than minimum, returning to main menu.')
-                    mainMenu()
-                elif(firstClassSeats > int(medWidBody['Capacity if all seats are standard-class'])):
-                    clear()
-                    print('First class seats greater then capacity, returning to main menu.')
-                    mainMenu()
-                standardSeats = int(medWidBody['Capacity if all seats are standard-class']) - firstClassSeats*2
-                clear()
-                print('Flight details verified, returning to main menu.')
-                mainMenu()
+        selectedAircraftType = input('Enter aircraft type\n').upper()
+        if(selectedAircraftType == 'MEDIUM NARROW BODY'):
+            bodyType = medNarBody
+        elif(selectedAircraftType == 'LARGE NARROW BODY'):
+            bodyType = larNarBody
+        elif(selectedAircraftType == 'MEDIUM NARROW BODY'):
+            bodyType = medWidBody
         else:
             clear()
             print('Invalid aircraft type, returning to main menu')
             mainMenu()
+        
+        print('Running cost per seat per 100 km: ' + bodyType['Running cost per seat per 100 km'] + '\nMaximum flight range (km): ' + medNarBody['Maximum flight range (km)'] + '\nCapacity if all seats are standard-class: ' + medNarBody['Capacity if all seats are standard-class'] + '\nMinimum number of first-class seats: ' + medNarBody['Minimum number of first-class seats'])
+        firstClassSeats = int(input('Enter amount of first class seats\n'))
+        if(firstClassSeats > 0):
+            if(firstClassSeats < int(bodyType['Minimum number of first-class seats'])):
+                clear()
+                print('First class seats less than minimum, returning to main menu.')
+                mainMenu()
+            if(firstClassSeats > int(bodyType['Capacity if all seats are standard-class'])):
+                clear()
+                print('First class seats greater then capacity, returning to main menu.')
+                mainMenu()
+            standardSeats = int(bodyType['Capacity if all seats are standard-class']) - firstClassSeats*2
+            clear()
+            print('Flight details verified, returning to main menu.')
+            mainMenu()
+
+def distCalc(bodyType):
+    if(ukAirport == 'LPL'):
+        if(bodyType['Maximum flight range (km)'] >= columns['Distance from Liverpool John Lennon (km)'][columnIndex]):
+            clear()
+            print('Max flight range is bigger than distance to airport, returning to main menu')
+            mainMenu()
+    else:
+        if(bodyType['Maximum flight range (km)'] >= columns['Distance from Bournemouth International (km)'][columnIndex]):
+            clear()
+            print('Max flight range is bigger than distance to airport, returning to main menu')
+            mainMenu()
+
+def costPerSeat(bodyType):
+    global flightCostPS
+    if(ukAirport == 'LPL'):
+        flightCostPS = int(bodyType['Running cost per seat per 100 km'])*int(columns['Distance from Liverpool John Lennon (km)'][columnIndex])/100
+    elif(ukAirport == 'BOH'):
+        flightCostPS = int(bodyType['Running cost per seat per 100 km'])*int(columns['Distance from Bournemouth International (km)'][columnIndex])/100
+
+def mainMenu():
+    print('''
+=========================================
+Welcome to the airline profit calculator
+=========================================
+(1) Enter airport details
+(2) Enter flight details
+(3) Enter price plan and calculate profit
+(4) Clear data
+(Q) Quit
+=========================================
+    ''')
+    menuSelection = input()
+    clear()
+    # Enter airport details
+    if(menuSelection == '1'):
+        airportDetails()
+    # Enter flight details
+    if(menuSelection == '2'):
+        flightDetails()
     # Calculate profit
     if(menuSelection == '3'):
         if(ukAirport == None or abrAirport == None):
@@ -126,59 +130,13 @@ Welcome to the airline profit calculator
             clear()
             print('First class seats havent been entered, returning to main menu')
             mainMenu()
-        elif(selectedAircraftType == 'Medium narrow body'):
-            if(ukAirport == 'LPL'):
-                if(medNarBody['Maximum flight range (km)'] >= columns['Distance from Liverpool John Lennon (km)'][columnIndex]):
-                    clear()
-                    print('Max flight range is bigger than distance to airport, returning to main menu')
-                    mainMenu()
-            else:
-                if(medNarBody['Maximum flight range (km)'] >= columns['Distance from Bournemouth International (km)'][columnIndex]):
-                    clear()
-                    print('Max flight range is bigger than distance to airport, returning to main menu')
-                    mainMenu()
-        elif(selectedAircraftType == 'Large narrow body'):
-            if(ukAirport == 'LPL'):
-                if(larNarBody['Maximum flight range (km)'] >= columns['Distance from Liverpool John Lennon (km)'][columnIndex]):
-                    clear()
-                    print('Max flight range is bigger than distance to airport, returning to main menu')
-                    mainMenu()
-            else:
-                if(larNarBody['Maximum flight range (km)'] >= columns['Distance from Bournemouth International (km)'][columnIndex]):
-                    clear()
-                    print('Max flight range is bigger than distance to airport, returning to main menu')
-                    mainMenu()
-        else:
-            if(ukAirport == 'LPL'):
-                if(medWidBody['Maximum flight range (km)'] >= columns['Distance from Liverpool John Lennon (km)'][columnIndex]):
-                    clear()
-                    print('Max flight range is bigger than distance to airport, returning to main menu')
-                    mainMenu()
-            else:
-                if(medWidBody['Maximum flight range (km)'] >= columns['Distance from Bournemouth International (km)'][columnIndex]):
-                    clear()
-                    print('Max flight range is bigger than distance to airport, returning to main menu')
-                    mainMenu()
+        distCalc(bodyType)
         stdSeatPrice = float(input('Enter the price of a standard seat\n£'))
         clear()
         fcSeatPrice = float(input('Enter the price of a first class seat\n£'))
         clear()
         # Calculate flight cost per seat
-        if(selectedAircraftType == 'Medium narrow body'):
-            if(ukAirport == 'LPL'):
-                flightCostPS = int(medNarBody['Running cost per seat per 100 km'])*int(columns['Distance from Liverpool John Lennon (km)'][columnIndex])/100
-            elif(ukAirport == 'BOH'):
-                flightCostPS = int(medNarBody['Running cost per seat per 100 km'])*int(columns['Distance from Bournemouth International (km)'][columnIndex])/100
-        elif(selectedAircraftType == 'Large narrow body'):
-            if(ukAirport == 'LPL'):
-                flightCostPS = int(larNarBody['Running cost per seat per 100 km'])*int(columns['Distance from Liverpool John Lennon (km)'][columnIndex])/100
-            elif(ukAirport == 'BOH'):
-                flightCostPS = int(larNarBody['Running cost per seat per 100 km'])*int(columns['Distance from Bournemouth International (km)'][columnIndex])/100
-        elif(selectedAircraftType == 'Medium wide body'):
-            if(ukAirport == 'LPL'):
-                flightCostPS = int(medWidBody['Running cost per seat per 100 km'])*int(columns['Distance from Liverpool John Lennon (km)'][columnIndex])/100
-            elif(ukAirport == 'BOH'):
-                flightCostPS = int(medWidBody['Running cost per seat per 100 km'])*int(columns['Distance from Bournemouth International (km)'][columnIndex])/100
+        costPerSeat(bodyType)
         flightCost = flightCostPS*(firstClassSeats+standardSeats)
         flightIncome = firstClassSeats*fcSeatPrice+standardSeats*stdSeatPrice
         flightProfit = flightIncome-flightCost
